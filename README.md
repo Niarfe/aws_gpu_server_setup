@@ -13,7 +13,7 @@ Host awsgpu
 ```
 * On local machine
 ```
-ssh -i key.pem -L 8888:localhost:8888 awsgpu
+ssh -L 8888:localhost:8888 awsgpu
 ```
 * On remote EC2
 ```
