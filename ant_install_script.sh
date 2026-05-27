@@ -3,10 +3,10 @@
 # EC2 LLM Environment Setup Script
 # Course: How to Train your LLM (Masters in Data Science)
 # Instance: g4dn.xlarge — AWS Deep Learning AMI (Ubuntu, PyTorch)
-# Python: System Python 3 (no conda — not present on this AMI)
+# Python: venv-based (required on Ubuntu 24 / Python 3.12)
 # =============================================================================
 
-set -e  # Exit immediately on any error
+set -e
 
 echo "============================================="
 echo " LLM Course Environment Setup"
@@ -18,7 +18,7 @@ echo "============================================="
 echo ""
 echo "[1/5] Updating system packages..."
 sudo apt-get update -y && sudo apt-get upgrade -y
-sudo apt-get install -y git curl wget unzip htop nvtop python3-pip
+sudo apt-get install -y git curl wget unzip htop nvtop python3-pip python3-full python3-venv
 
 # -----------------------------------------------------------------------------
 # 2. VERIFY GPU IS VISIBLE
@@ -33,22 +33,25 @@ if [ $? -ne 0 ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# 3. VERIFY PYTHON
+# 3. CREATE VIRTUAL ENVIRONMENT
 # -----------------------------------------------------------------------------
 echo ""
-echo "[3/5] Checking Python..."
-python3 --version
-pip3 --version
+echo "[3/5] Creating virtual environment at ~/llm_course..."
+python3 -m venv ~/llm_course
+source ~/llm_course/bin/activate
+echo "  Python : $(python --version)"
+echo "  pip    : $(pip --version)"
 
 # -----------------------------------------------------------------------------
 # 4. INSTALL PYTORCH + COURSE PACKAGES
 # -----------------------------------------------------------------------------
 echo ""
 echo "[4/5] Installing PyTorch (CUDA 12.1)..."
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install --upgrade pip
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Sanity check
-python3 - <<'PYCHECK'
+python - <<'PYCHECK'
 import torch
 print(f"  PyTorch version : {torch.__version__}")
 print(f"  CUDA available  : {torch.cuda.is_available()}")
@@ -59,7 +62,7 @@ PYCHECK
 
 echo ""
 echo "Installing course packages..."
-pip3 install \
+pip install \
     transformers \
     huggingface_hub \
     numpy \
@@ -100,10 +103,15 @@ c.NotebookApp.open_browser = False
 c.NotebookApp.iopub_data_rate_limit = 1e10
 JCONF
 
-# Write a simple Makefile for starting Jupyter
+# -----------------------------------------------------------------------------
+# WRITE MAKEFILE
+# The venv must be activated each session, so we source it in the Makefile.
+# -----------------------------------------------------------------------------
 cat > ~/makefile << 'MKEOF'
+VENV = $(HOME)/llm_course
+
 up:
-	jupyter notebook --no-browser --port=8888
+	source $(VENV)/bin/activate && jupyter notebook --no-browser --port=8888
 MKEOF
 
 echo ""
@@ -115,4 +123,7 @@ echo "  Start Jupyter:         make up"
 echo ""
 echo "  SSH tunnel (laptop):   ssh -i your-key.pem -L 8888:localhost:8888 ubuntu@<EC2_PUBLIC_IP>"
 echo "  Then open browser:     http://localhost:8888"
+echo ""
+echo "  To activate the venv manually:"
+echo "    source ~/llm_course/bin/activate"
 echo ""
