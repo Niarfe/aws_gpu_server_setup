@@ -1,6 +1,9 @@
 # aws_gpu_server_setup
 # Setting up a CUDA server on AWS
 
+# Ubuntu
+
+# Deep Learning OSS Nvidia Driver AMI GPU PyTorch 2.11 (Ubuntu 24.04)
 
 # After server is running
 * Upudate ip in `.ssh/config`
