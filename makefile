@@ -22,7 +22,7 @@ check3: # 3. Spot-check the key course packages:
 VENV = $(HOME)/llm_course
 
 up:
-        source $(VENV)/bin/activate && jupyter notebook --no-browser --port=8888
+        source $(VENV)/bin/activate && jupyter lab --no-browser --port=8888
 
 session:
         tmux new -s 5002
